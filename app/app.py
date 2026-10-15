@@ -718,6 +718,10 @@ elif page == "Single Delivery Prediction":
         unsafe_allow_html=True
     )
 
+    # ========================================================
+    # SHIPMENT INPUT FORM
+    # ========================================================
+
     with st.form("single_prediction_form"):
 
         col1, col2 = st.columns(2, gap="large")
@@ -756,20 +760,24 @@ elif page == "Single Delivery Prediction":
                 CATEGORIES["Weather_Condition"]
             )
 
+            # Flexible distance input
             distance = st.number_input(
                 "Distance (km)",
-                min_value=3.60,
-                max_value=297.10,
+                min_value=0.01,
                 value=50.0,
-                step=1.0
+                step=1.0,
+                format="%.2f",
+                help="Enter the actual delivery distance in kilometers."
             )
 
+            # Flexible package weight input
             package_weight = st.number_input(
                 "Package Weight (kg)",
-                min_value=0.67,
-                max_value=49.52,
+                min_value=0.01,
                 value=5.0,
-                step=0.5
+                step=0.5,
+                format="%.2f",
+                help="Enter the actual package weight in kilograms."
             )
 
         submitted = st.form_submit_button(
@@ -778,8 +786,28 @@ elif page == "Single Delivery Prediction":
             use_container_width=True
         )
 
+    # ========================================================
+    # GENERATE PREDICTION
+    # ========================================================
+
     if submitted:
 
+        # Warn users when inputs are outside training ranges
+        if (
+            distance < 3.60
+            or distance > 297.10
+            or package_weight < 0.67
+            or package_weight > 49.52
+        ):
+
+            st.warning(
+                "⚠️ One or more input values are outside the "
+                "ranges represented in the training dataset. "
+                "The model can still generate a prediction, "
+                "but the result may be less reliable."
+            )
+
+        # Create input dataframe
         input_data = pd.DataFrame(
             [[
                 delivery_partner,
@@ -796,6 +824,7 @@ elif page == "Single Delivery Prediction":
 
         try:
 
+            # Generate ML prediction
             result = predict_deliveries(input_data)
 
             prediction = int(
@@ -817,6 +846,10 @@ elif page == "Single Delivery Prediction":
                 if prediction == 1
                 else "ON TIME"
             )
+
+            # =================================================
+            # PREDICTION RESULTS
+            # =================================================
 
             st.divider()
 
@@ -847,7 +880,7 @@ elif page == "Single Delivery Prediction":
                     <div class="result-card {risk_css}">
                         <p>Estimated Delay Probability</p>
                         <h2>{probability * 100:.2f}%</h2>
-                        <p style="color:{risk_color};">
+                        <p style="color:{risk_color}; font-weight:600;">
                             {risk}
                         </p>
                     </div>
@@ -857,37 +890,251 @@ elif page == "Single Delivery Prediction":
 
             st.write("")
 
+            # =================================================
+            # PROFESSIONAL DELIVERY RISK SCALE
+            # =================================================
+
             st.subheader("Delivery Risk Indicator")
 
-            st.progress(
-                probability,
-                text=f"Estimated Delay Risk: {probability * 100:.2f}%"
+            risk_percentage = probability * 100
+
+            # Keep pointer within the scale
+            pointer_position = max(
+                0,
+                min(risk_percentage, 100)
             )
+
+            # Choose pointer color
+            if risk_percentage < 40:
+                pointer_color = "#16A34A"
+
+            elif risk_percentage < 70:
+                pointer_color = "#F59E0B"
+
+            else:
+                pointer_color = "#DC2626"
+
+            # Keep the percentage label inside the card
+            if pointer_position < 7:
+                label_transform = "translateX(0%)"
+
+            elif pointer_position > 93:
+                label_transform = "translateX(-100%)"
+
+            else:
+                label_transform = "translateX(-50%)"
+
+            # Render custom risk scale
+            st.markdown(
+                f"""
+                <div style="
+                    background: #FFFFFF;
+                    padding: 30px 25px;
+                    border-radius: 16px;
+                    border: 1px solid #E2E8F0;
+                    box-shadow: 0 4px 14px rgba(16,42,67,0.05);
+                    margin-top: 15px;
+                    margin-bottom: 25px;
+                ">
+
+                    <div style="
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #102A43;
+                        margin-bottom: 30px;
+                    ">
+                        Estimated Delivery Delay Risk
+                    </div>
+
+                    <!-- Percentage label and pointer -->
+                    <div style="
+                        position: relative;
+                        height: 60px;
+                    ">
+
+                        <!-- Percentage label -->
+                        <div style="
+                            position: absolute;
+                            left: {pointer_position}%;
+                            transform: {label_transform};
+                            top: 0;
+                            background: {pointer_color};
+                            color: white;
+                            font-size: 14px;
+                            font-weight: 700;
+                            padding: 7px 12px;
+                            border-radius: 8px;
+                            white-space: nowrap;
+                        ">
+                            {risk_percentage:.2f}%
+                        </div>
+
+                        <!-- Triangle pointer -->
+                        <div style="
+                            position: absolute;
+                            left: {pointer_position}%;
+                            transform: translateX(-50%);
+                            bottom: 0;
+                            width: 0;
+                            height: 0;
+                            border-left: 9px solid transparent;
+                            border-right: 9px solid transparent;
+                            border-top: 13px solid {pointer_color};
+                        "></div>
+
+                    </div>
+
+                    <!-- Three-color risk scale -->
+                    <div style="
+                        display: flex;
+                        width: 100%;
+                        height: 26px;
+                        border-radius: 10px;
+                        overflow: hidden;
+                        margin-top: 8px;
+                    ">
+
+                        <!-- Low Risk: 0% - 40% -->
+                        <div style="
+                            width: 40%;
+                            background: #16A34A;
+                        "></div>
+
+                        <!-- Medium Risk: 40% - 70% -->
+                        <div style="
+                            width: 30%;
+                            background: #F59E0B;
+                        "></div>
+
+                        <!-- High Risk: 70% - 100% -->
+                        <div style="
+                            width: 30%;
+                            background: #DC2626;
+                        "></div>
+
+                    </div>
+
+                    <!-- Percentage thresholds -->
+                    <div style="
+                        position: relative;
+                        height: 26px;
+                        margin-top: 10px;
+                        font-size: 13px;
+                        color: #64748B;
+                    ">
+
+                        <span style="
+                            position: absolute;
+                            left: 0;
+                        ">0%</span>
+
+                        <span style="
+                            position: absolute;
+                            left: 40%;
+                            transform: translateX(-50%);
+                        ">40%</span>
+
+                        <span style="
+                            position: absolute;
+                            left: 70%;
+                            transform: translateX(-50%);
+                        ">70%</span>
+
+                        <span style="
+                            position: absolute;
+                            right: 0;
+                        ">100%</span>
+
+                    </div>
+
+                    <!-- Risk category labels -->
+                    <div style="
+                        display: flex;
+                        margin-top: 18px;
+                        font-size: 13px;
+                        font-weight: 700;
+                        text-align: center;
+                    ">
+
+                        <div style="
+                            width: 40%;
+                            color: #16A34A;
+                        ">
+                            LOW RISK
+                        </div>
+
+                        <div style="
+                            width: 30%;
+                            color: #D97706;
+                        ">
+                            MEDIUM RISK
+                        </div>
+
+                        <div style="
+                            width: 30%;
+                            color: #DC2626;
+                        ">
+                            HIGH RISK
+                        </div>
+
+                    </div>
+
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+            # =================================================
+            # RISK ASSESSMENT
+            # =================================================
 
             st.subheader("Risk Assessment")
 
             if risk == "Low Risk":
-                st.success(f"🟢 {risk}")
+
+                st.success(
+                    f"🟢 {risk} — Lower estimated delivery delay risk."
+                )
 
             elif risk == "Medium Risk":
-                st.warning(f"🟠 {risk}")
+
+                st.warning(
+                    f"🟠 {risk} — Moderate estimated delivery delay risk."
+                )
 
             else:
-                st.error(f"🔴 {risk}")
+
+                st.error(
+                    f"🔴 {risk} — Elevated estimated delivery delay risk."
+                )
+
+            # =================================================
+            # OPERATIONAL RECOMMENDATION
+            # =================================================
 
             st.subheader("Operational Recommendation")
 
-            st.info(get_recommendation(risk))
+            st.info(
+                get_recommendation(risk)
+            )
+
+            # =================================================
+            # MODEL DISCLAIMER
+            # =================================================
 
             st.caption(
                 "Predictions are statistical estimates, not "
                 "guaranteed delivery outcomes. Risk thresholds "
-                "are defined by the application."
+                "are defined by the application. Predictions "
+                "outside the training data range may be less reliable."
             )
 
         except Exception as e:
 
-            st.error("Unable to generate the prediction.")
+            st.error(
+                "Unable to generate the delivery prediction."
+            )
+
             st.exception(e)
 
 
