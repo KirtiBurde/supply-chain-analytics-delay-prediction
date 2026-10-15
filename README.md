@@ -184,7 +184,7 @@ An interactive four-page Power BI dashboard was developed to analyze logistics o
 
 For detailed explanations of all four dashboard pages, KPIs, visualizations, and interactive features:
 
-**[View Power BI Dashboard Documentation](Visualization/README.md)**
+**[View Power BI Dashboard Documentation](04.%20visualization/readme.md)**
 
 ---
 
