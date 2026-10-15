@@ -760,24 +760,22 @@ elif page == "Single Delivery Prediction":
                 CATEGORIES["Weather_Condition"]
             )
 
-            # Flexible distance input
             distance = st.number_input(
                 "Distance (km)",
                 min_value=0.01,
                 value=50.0,
                 step=1.0,
                 format="%.2f",
-                help="Enter the actual delivery distance in kilometers."
+                help="Enter the delivery distance in kilometers."
             )
 
-            # Flexible package weight input
             package_weight = st.number_input(
                 "Package Weight (kg)",
                 min_value=0.01,
                 value=5.0,
                 step=0.5,
                 format="%.2f",
-                help="Enter the actual package weight in kilograms."
+                help="Enter the package weight in kilograms."
             )
 
         submitted = st.form_submit_button(
@@ -792,7 +790,7 @@ elif page == "Single Delivery Prediction":
 
     if submitted:
 
-        # Warn users when inputs are outside training ranges
+        # Check training data ranges
         if (
             distance < 3.60
             or distance > 297.10
@@ -824,7 +822,7 @@ elif page == "Single Delivery Prediction":
 
         try:
 
-            # Generate ML prediction
+            # Generate prediction
             result = predict_deliveries(input_data)
 
             prediction = int(
@@ -891,20 +889,20 @@ elif page == "Single Delivery Prediction":
             st.write("")
 
             # =================================================
-            # PROFESSIONAL DELIVERY RISK SCALE
+            # PROFESSIONAL DELIVERY RISK INDICATOR
             # =================================================
 
             st.subheader("Delivery Risk Indicator")
 
             risk_percentage = probability * 100
 
-            # Keep pointer within the scale
+            # Keep pointer between 0% and 100%
             pointer_position = max(
                 0,
                 min(risk_percentage, 100)
             )
 
-            # Choose pointer color
+            # Select pointer color
             if risk_percentage < 40:
                 pointer_color = "#16A34A"
 
@@ -914,175 +912,176 @@ elif page == "Single Delivery Prediction":
             else:
                 pointer_color = "#DC2626"
 
-            # Keep the percentage label inside the card
-            if pointer_position < 7:
-                label_transform = "translateX(0%)"
+            # Keep percentage label inside the card
+            label_position = max(
+                6,
+                min(pointer_position, 94)
+            )
 
-            elif pointer_position > 93:
-                label_transform = "translateX(-100%)"
+            # =================================================
+            # CUSTOM HTML RISK SCALE
+            # =================================================
 
-            else:
-                label_transform = "translateX(-50%)"
+            risk_scale_html = f"""
+            <div style="
+                background:#FFFFFF;
+                padding:28px 25px;
+                border-radius:16px;
+                border:1px solid #E2E8F0;
+                box-shadow:0 4px 14px rgba(16,42,67,0.05);
+                margin:15px 0 25px 0;
+            ">
 
-            # Render custom risk scale
-            st.markdown(
-                f"""
                 <div style="
-                    background: #FFFFFF;
-                    padding: 30px 25px;
-                    border-radius: 16px;
-                    border: 1px solid #E2E8F0;
-                    box-shadow: 0 4px 14px rgba(16,42,67,0.05);
-                    margin-top: 15px;
-                    margin-bottom: 25px;
+                    font-size:16px;
+                    font-weight:600;
+                    color:#102A43;
+                    margin-bottom:30px;
+                ">
+                    Estimated Delivery Delay Risk
+                </div>
+
+                <!-- Percentage label and pointer -->
+                <div style="
+                    position:relative;
+                    height:60px;
                 ">
 
+                    <!-- Percentage badge -->
                     <div style="
-                        font-size: 16px;
-                        font-weight: 600;
-                        color: #102A43;
-                        margin-bottom: 30px;
+                        position:absolute;
+                        left:{label_position}%;
+                        transform:translateX(-50%);
+                        top:0;
+                        background:{pointer_color};
+                        color:white;
+                        font-size:14px;
+                        font-weight:700;
+                        padding:7px 12px;
+                        border-radius:8px;
+                        white-space:nowrap;
                     ">
-                        Estimated Delivery Delay Risk
+                        {risk_percentage:.2f}%
                     </div>
 
-                    <!-- Percentage label and pointer -->
+                    <!-- Triangle pointer -->
                     <div style="
-                        position: relative;
-                        height: 60px;
+                        position:absolute;
+                        left:{pointer_position}%;
+                        transform:translateX(-50%);
+                        bottom:0;
+                        width:0;
+                        height:0;
+                        border-left:9px solid transparent;
+                        border-right:9px solid transparent;
+                        border-top:13px solid {pointer_color};
                     ">
-
-                        <!-- Percentage label -->
-                        <div style="
-                            position: absolute;
-                            left: {pointer_position}%;
-                            transform: {label_transform};
-                            top: 0;
-                            background: {pointer_color};
-                            color: white;
-                            font-size: 14px;
-                            font-weight: 700;
-                            padding: 7px 12px;
-                            border-radius: 8px;
-                            white-space: nowrap;
-                        ">
-                            {risk_percentage:.2f}%
-                        </div>
-
-                        <!-- Triangle pointer -->
-                        <div style="
-                            position: absolute;
-                            left: {pointer_position}%;
-                            transform: translateX(-50%);
-                            bottom: 0;
-                            width: 0;
-                            height: 0;
-                            border-left: 9px solid transparent;
-                            border-right: 9px solid transparent;
-                            border-top: 13px solid {pointer_color};
-                        "></div>
-
-                    </div>
-
-                    <!-- Three-color risk scale -->
-                    <div style="
-                        display: flex;
-                        width: 100%;
-                        height: 26px;
-                        border-radius: 10px;
-                        overflow: hidden;
-                        margin-top: 8px;
-                    ">
-
-                        <!-- Low Risk: 0% - 40% -->
-                        <div style="
-                            width: 40%;
-                            background: #16A34A;
-                        "></div>
-
-                        <!-- Medium Risk: 40% - 70% -->
-                        <div style="
-                            width: 30%;
-                            background: #F59E0B;
-                        "></div>
-
-                        <!-- High Risk: 70% - 100% -->
-                        <div style="
-                            width: 30%;
-                            background: #DC2626;
-                        "></div>
-
-                    </div>
-
-                    <!-- Percentage thresholds -->
-                    <div style="
-                        position: relative;
-                        height: 26px;
-                        margin-top: 10px;
-                        font-size: 13px;
-                        color: #64748B;
-                    ">
-
-                        <span style="
-                            position: absolute;
-                            left: 0;
-                        ">0%</span>
-
-                        <span style="
-                            position: absolute;
-                            left: 40%;
-                            transform: translateX(-50%);
-                        ">40%</span>
-
-                        <span style="
-                            position: absolute;
-                            left: 70%;
-                            transform: translateX(-50%);
-                        ">70%</span>
-
-                        <span style="
-                            position: absolute;
-                            right: 0;
-                        ">100%</span>
-
-                    </div>
-
-                    <!-- Risk category labels -->
-                    <div style="
-                        display: flex;
-                        margin-top: 18px;
-                        font-size: 13px;
-                        font-weight: 700;
-                        text-align: center;
-                    ">
-
-                        <div style="
-                            width: 40%;
-                            color: #16A34A;
-                        ">
-                            LOW RISK
-                        </div>
-
-                        <div style="
-                            width: 30%;
-                            color: #D97706;
-                        ">
-                            MEDIUM RISK
-                        </div>
-
-                        <div style="
-                            width: 30%;
-                            color: #DC2626;
-                        ">
-                            HIGH RISK
-                        </div>
-
                     </div>
 
                 </div>
-                """,
-                unsafe_allow_html=True
-            )
+
+                <!-- Three-color risk scale -->
+                <div style="
+                    display:flex;
+                    width:100%;
+                    height:26px;
+                    border-radius:10px;
+                    overflow:hidden;
+                    margin-top:8px;
+                ">
+
+                    <!-- Low Risk: 0% to 40% -->
+                    <div style="
+                        width:40%;
+                        background:#16A34A;
+                    "></div>
+
+                    <!-- Medium Risk: 40% to 70% -->
+                    <div style="
+                        width:30%;
+                        background:#F59E0B;
+                    "></div>
+
+                    <!-- High Risk: 70% to 100% -->
+                    <div style="
+                        width:30%;
+                        background:#DC2626;
+                    "></div>
+
+                </div>
+
+                <!-- Percentage thresholds -->
+                <div style="
+                    position:relative;
+                    height:26px;
+                    margin-top:10px;
+                    font-size:13px;
+                    color:#64748B;
+                ">
+
+                    <span style="
+                        position:absolute;
+                        left:0;
+                    ">0%</span>
+
+                    <span style="
+                        position:absolute;
+                        left:40%;
+                        transform:translateX(-50%);
+                    ">40%</span>
+
+                    <span style="
+                        position:absolute;
+                        left:70%;
+                        transform:translateX(-50%);
+                    ">70%</span>
+
+                    <span style="
+                        position:absolute;
+                        right:0;
+                    ">100%</span>
+
+                </div>
+
+                <!-- Risk category labels -->
+                <div style="
+                    display:flex;
+                    margin-top:18px;
+                    font-size:13px;
+                    font-weight:700;
+                    text-align:center;
+                ">
+
+                    <div style="
+                        width:40%;
+                        color:#16A34A;
+                    ">
+                        LOW RISK
+                    </div>
+
+                    <div style="
+                        width:30%;
+                        color:#D97706;
+                    ">
+                        MEDIUM RISK
+                    </div>
+
+                    <div style="
+                        width:30%;
+                        color:#DC2626;
+                    ">
+                        HIGH RISK
+                    </div>
+
+                </div>
+
+            </div>
+            """
+
+            # Render HTML directly instead of Markdown.
+            # This prevents HTML from appearing as code.
+
+            st.html(risk_scale_html)
 
             # =================================================
             # RISK ASSESSMENT
