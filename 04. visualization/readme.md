@@ -92,7 +92,7 @@ Compares total transportation costs across delivery regions.
 
 ### 🖼️ Dashboard Screenshot
 
-![Executive Overview](screenshots/01.Executive_Overview.png)
+![Executive Overview](screenshots/01.Excecutive_Overview.png)
 
 ---
 
