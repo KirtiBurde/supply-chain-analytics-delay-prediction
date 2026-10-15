@@ -139,7 +139,7 @@ Examines how delivery delay percentages vary across delivery distance ranges.
 
 ### 🖼️ Dashboard Screenshot
 
-![Delay Analysis](Screenshots/02.Delay_Analysis.png)
+![Delay Analysis](screenshots/02.Delay_Analysis.png)
 
 ---
 
@@ -184,7 +184,8 @@ Compares average customer delivery ratings across regions.
 
 ### 🖼️ Dashboard Screenshot
 
-![Logistics Performance](Screenshots/03.Logistics_Performance.png)
+![Logistics Performance](screenshots/03.Logistics_Performance.png)
+
 
 ---
 
@@ -230,7 +231,7 @@ A donut chart displaying the distribution of total delivery costs between delaye
 
 ### 🖼️ Dashboard Screenshot
 
-![Cost & Risk Analysis](Screenshots/04.Cost_&_Risk_Analysis.png)
+![Cost and Risk Analysis](screenshots/04.Cost_%26_Risk_Analysis.png)
 
 ### Important Note
 
